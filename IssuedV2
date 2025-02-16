@@ -1,5 +1,6 @@
 local UILibrary = {}
 
+-- Function to Create a Window
 function UILibrary:CreateWindow(title, keybind)
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "VaytrixUI"
@@ -9,6 +10,8 @@ function UILibrary:CreateWindow(title, keybind)
     Frame.Size = UDim2.new(0, 400, 0, 300)
     Frame.Position = UDim2.new(0.5, -200, 0.5, -150)
     Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    Frame.Active = true
+    Frame.Draggable = true
     Frame.Parent = ScreenGui
 
     local Title = Instance.new("TextLabel")
@@ -16,20 +19,47 @@ function UILibrary:CreateWindow(title, keybind)
     Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     Title.Text = title
     Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 20
     Title.Parent = Frame
 
-    -- Keybind to show/hide UI
-    local UserInputService = game:GetService("UserInputService")
-    UserInputService.InputBegan:Connect(function(input)
-        if input.KeyCode == keybind then
-            ScreenGui.Enabled = not ScreenGui.Enabled
+    -- Animation for Showing/Hide UI
+    local TweenService = game:GetService("TweenService")
+    local uiTween = TweenService:Create(Frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -200, 0.5, -150)})
+    local isVisible = true
+
+    -- Toggle to Show/Hide UI
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(0, 100, 0, 30)
+    ToggleButton.Position = UDim2.new(1, -110, 0, 10)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    ToggleButton.Text = "Hide"
+    ToggleButton.TextColor3 = Color3.new(1, 1, 1)
+    ToggleButton.Parent = Frame
+    ToggleButton.MouseButton1Click:Connect(function()
+        isVisible = not isVisible
+        if isVisible then
+            Frame.Visible = true
+            ToggleButton.Text = "Hide"
+        else
+            Frame.Visible = false
+            ToggleButton.Text = "Show"
         end
     end)
 
-    -- Tab storage
+    -- Keybind to Show/Hide UI
+    local UserInputService = game:GetService("UserInputService")
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == keybind then
+            isVisible = not isVisible
+            Frame.Visible = isVisible
+            ToggleButton.Text = isVisible and "Hide" or "Show"
+        end
+    end)
+
+    -- Tab Storage
     local Tabs = {}
 
-    -- Create Tab function
     function UILibrary:CreateTab(name)
         local Tab = Instance.new("Frame")
         Tab.Size = UDim2.new(1, 0, 1, -50)
@@ -40,7 +70,6 @@ function UILibrary:CreateWindow(title, keybind)
         return Tab
     end
 
-    -- Switch Tab function
     function UILibrary:SwitchTab(name)
         for tabName, tab in pairs(Tabs) do
             tab.Visible = (tabName == name)
@@ -50,25 +79,38 @@ function UILibrary:CreateWindow(title, keybind)
     return Frame
 end
 
+-- Function to Create Buttons
 function UILibrary:CreateButton(parent, text, callback)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(0, 200, 0, 40)
+    button.Position = UDim2.new(0.5, -100, 0, #parent:GetChildren() * 45)
     button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     button.Text = text
     button.TextColor3 = Color3.new(1, 1, 1)
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 14
     button.Parent = parent
+
+    -- Animation for Button Click
+    local TweenService = game:GetService("TweenService")
+    local clickTween = TweenService:Create(button, TweenInfo.new(0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -100, 0, #parent:GetChildren() * 45 + 10)})
 
     button.MouseButton1Click:Connect(function()
         callback()
+        clickTween:Play()
     end)
 end
 
+-- Function to Create Toggle Buttons
 function UILibrary:CreateToggle(parent, text, callback)
     local toggle = Instance.new("TextButton")
     toggle.Size = UDim2.new(0, 200, 0, 40)
+    toggle.Position = UDim2.new(0.5, -100, 0, #parent:GetChildren() * 45)
     toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     toggle.Text = text .. " [OFF]"
     toggle.TextColor3 = Color3.new(1, 1, 1)
+    toggle.Font = Enum.Font.Gotham
+    toggle.TextSize = 14
     toggle.Parent = parent
 
     local state = false
@@ -79,12 +121,16 @@ function UILibrary:CreateToggle(parent, text, callback)
     end)
 end
 
+-- Function to Create Sliders
 function UILibrary:CreateSlider(parent, text, min, max, default, callback)
     local slider = Instance.new("TextButton")
     slider.Size = UDim2.new(0, 200, 0, 40)
+    slider.Position = UDim2.new(0.5, -100, 0, #parent:GetChildren() * 45)
     slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     slider.Text = text .. ": " .. default
     slider.TextColor3 = Color3.new(1, 1, 1)
+    slider.Font = Enum.Font.Gotham
+    slider.TextSize = 14
     slider.Parent = parent
 
     local value = default
@@ -95,12 +141,16 @@ function UILibrary:CreateSlider(parent, text, min, max, default, callback)
     end)
 end
 
+-- Function to Create Dropdowns
 function UILibrary:CreateDropdown(parent, text, options, callback)
     local dropdown = Instance.new("TextButton")
     dropdown.Size = UDim2.new(0, 200, 0, 40)
+    dropdown.Position = UDim2.new(0.5, -100, 0, #parent:GetChildren() * 45)
     dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     dropdown.Text = text .. " [Select]"
     dropdown.TextColor3 = Color3.new(1, 1, 1)
+    dropdown.Font = Enum.Font.Gotham
+    dropdown.TextSize = 14
     dropdown.Parent = parent
 
     local selected = options[1] or "None"
